@@ -10,12 +10,12 @@ import (
 const conStr = "postgres://postgres:postgres@localhost:5432/flourish"
 
 func ConnectToDatabase() (*pgxpool.Pool, error) {
-	dbpool, err := pgxpool.New(context.Background(), conStr)
+	p, err := pgxpool.New(context.Background(), conStr)
 	if err != nil {
 		return nil, err
 	}
 
-	return dbpool, nil
+	return p, nil
 }
 
 // Insert new User with UserName and Password
@@ -71,7 +71,7 @@ func GetTasksByUserId(p *pgxpool.Pool, user_id int) ([]Task, error) {
 }
 
 // Get Task Progress by User Id and Task Id
-func GetTaskProgressByUserTaskId(p *pgxpool.Pool, userId int, taskId int) (TaskProgress, error) {
+func GetTaskProgressByUserIdTaskId(p *pgxpool.Pool, userId int, taskId int) (TaskProgress, error) {
 	query := "SELECT * FROM task_progress WHERE user_id = $1 AND task_id = $2;"
 	var tp TaskProgress
 	err := p.QueryRow(context.Background(), query, userId, taskId).Scan(&tp)
