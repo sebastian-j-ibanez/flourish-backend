@@ -1,9 +1,13 @@
 package main
 
 import (
-    "fmt"
+	"fmt"
+
+	"github.com/sebastian-j-ibanez/flourish-backend/code"
 )
 
 func main() {
-    fmt.Println("TODO: Implement main!")
+	for range 10 {
+		fmt.Println(code.GenerateCode())
+	}
 }
