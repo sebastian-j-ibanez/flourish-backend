@@ -14,13 +14,6 @@ func main() {
 		panic(msg)
 	}
 
-	// success, err := database.AuthenticateUser(p, "condor25", "123")
-	// if !success || err != nil {
-	// 	panic(err.Error())
-	// } else {
-	// 	fmt.Println("success!")
-	// }
-
 	r := gin.Default()
 
 	config := cors.DefaultConfig()
@@ -32,6 +25,12 @@ func main() {
 	r.Use(cors.New(config))
 
 	r.POST("/login", api.LoginHandler(p))
+	r.POST("/signup", api.SignupHandler(p))
+	r.POST("/newtask", api.NewTaskHandler(p))
+	r.POST("/updatetask", api.UpdateTaskHandler(p))
+	r.POST("/todaytasks", api.TodoTaskHandler(p))
+	r.POST("/usertasks", api.TaskListingHandler(p))
+	r.POST("/treedata", api.TreeDataHandler(p))
 	r.POST("/ping", api.Ping)
 
 	r.Run(":8080")
