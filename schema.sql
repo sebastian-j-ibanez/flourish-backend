@@ -155,16 +155,16 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 --
 
 COPY public.task_progress (task_progress_id, user_id, task_id, status, task_date) FROM stdin;
-30	26	28	f	2025-03-02
-31	26	29	f	2025-03-02
-42	25	32	f	2025-03-02
-43	25	27	f	2025-03-02
-44	25	27	f	2025-03-01
-45	25	27	f	2025-02-28
-46	25	27	f	2025-02-27
-47	25	27	f	2025-02-26
-48	25	27	f	2025-02-25
-49	25	27	f	2025-02-24
+95	26	32	f	2025-03-02
+42	25	32	t	2025-03-02
+43	25	27	t	2025-03-02
+44	25	27	t	2025-03-01
+45	25	27	t	2025-02-28
+46	25	27	t	2025-02-27
+47	25	27	t	2025-02-26
+48	25	27	t	2025-02-25
+49	25	27	t	2025-02-24
+55	25	27	t	2025-02-23
 \.
 
 
@@ -173,10 +173,8 @@ COPY public.task_progress (task_progress_id, user_id, task_id, status, task_date
 --
 
 COPY public.tasks (task_id, task_code, task_name, user_ids) FROM stdin;
-28	RXU128	running	{26}
-32	LD78R9	running	{25}
-27	WM1SJW	go for a walk : )	{25}
-29	FZ7QP0	coding	{26}
+32	LD78R9	running	{25,26}
+27	WM1SJW	go for a walk : )	{25,26}
 30	HBE8ZK	Meditate	{25}
 \.
 
@@ -197,14 +195,14 @@ COPY public.users (user_id, user_name, pass_word) FROM stdin;
 -- Name: task_progress_progress_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.task_progress_progress_id_seq', 52, true);
+SELECT pg_catalog.setval('public.task_progress_progress_id_seq', 95, true);
 
 
 --
 -- Name: tasks_task_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tasks_task_id_seq', 35, true);
+SELECT pg_catalog.setval('public.tasks_task_id_seq', 39, true);
 
 
 --

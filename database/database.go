@@ -234,6 +234,10 @@ func JoinTask(p *pgxpool.Pool, userId int, taskCode string) error {
 		return err
 	}
 
+	if err = tx.Commit(context.Background()); err != nil {
+		return err
+	}
+
 	return nil
 }
 
