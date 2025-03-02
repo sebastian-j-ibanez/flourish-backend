@@ -155,16 +155,16 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 --
 
 COPY public.task_progress (task_progress_id, user_id, task_id, status, task_date) FROM stdin;
-2	2	1	f	2023-10-26
-3	3	1	t	2023-10-27
-4	2	2	t	2023-10-27
-5	4	2	f	2023-10-28
-6	1	3	t	2023-10-28
-7	5	3	f	2023-10-29
-8	3	4	t	2023-10-29
-9	4	4	t	2023-10-30
-1	1	1	f	2023-10-26
-10	1	1	f	2025-03-02
+30	26	28	f	2025-03-02
+31	26	29	f	2025-03-02
+42	25	32	f	2025-03-02
+43	25	27	f	2025-03-02
+44	25	27	f	2025-03-01
+45	25	27	f	2025-02-28
+46	25	27	f	2025-02-27
+47	25	27	f	2025-02-26
+48	25	27	f	2025-02-25
+49	25	27	f	2025-02-24
 \.
 
 
@@ -173,14 +173,11 @@ COPY public.task_progress (task_progress_id, user_id, task_id, status, task_date
 --
 
 COPY public.tasks (task_id, task_code, task_name, user_ids) FROM stdin;
-4	J1K6L8	Go outside	{3,4}
-1	A7B2X9	Go on a walk	{2,3}
-9	HE0877	meditate	{1}
-10	FPB0KR	new task	{1}
-11	7DZ2PV	new task	{1}
-12	MF4ORE	new task	{1}
-2	3C8D1E	Meditate	{4}
-3	F5G9H4	Journal	{5}
+28	RXU128	running	{26}
+32	LD78R9	running	{25}
+27	WM1SJW	go for a walk : )	{25}
+29	FZ7QP0	coding	{26}
+30	HBE8ZK	Meditate	{25}
 \.
 
 
@@ -189,22 +186,10 @@ COPY public.tasks (task_id, task_code, task_name, user_ids) FROM stdin;
 --
 
 COPY public.users (user_id, user_name, pass_word) FROM stdin;
-1	condor25	123
-2	jfk	123
-3	alice_smith	password123
-4	bob_jones	secure456
-5	charlie_brown	complex789
-6	condor	123
-12	jasmine	pw
-13	admin	DTeL87qp6CtaejC
-14	asnaksdnak	fsafasf
-15	asnaksdnak	fsafasf
-16	asnaksdnak	dsadsadas
-17	jasmine	pe
-18	condor	123
-19	admin	DTeL87qp6CtaejC
-20	sadfs	fdsfa
-21	Aj	123
+23	condor25	123
+25	AJ	123
+26	Jasmine	pw
+24	Sebastian	123
 \.
 
 
@@ -212,21 +197,21 @@ COPY public.users (user_id, user_name, pass_word) FROM stdin;
 -- Name: task_progress_progress_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.task_progress_progress_id_seq', 20, true);
+SELECT pg_catalog.setval('public.task_progress_progress_id_seq', 52, true);
 
 
 --
 -- Name: tasks_task_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tasks_task_id_seq', 18, true);
+SELECT pg_catalog.setval('public.tasks_task_id_seq', 35, true);
 
 
 --
 -- Name: users_userid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_userid_seq', 21, true);
+SELECT pg_catalog.setval('public.users_userid_seq', 26, true);
 
 
 --

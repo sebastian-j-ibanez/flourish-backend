@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +36,11 @@ type NewTaskRequest struct {
 
 type TaskRequest struct {
 	TaskId int `json:"taskId"`
+}
+
+type TaskJoinRequest struct {
+	UserId   int    `json:"userId"`
+	TaskCode string `json:"taskCode"`
 }
 
 func Ping(c *gin.Context) {
@@ -148,6 +152,24 @@ func DeleteTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
+func JoinTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request TaskJoinRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		err := database.JoinTask(p, request.UserId, request.TaskCode)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		c.Status(http.StatusOK)
+	}
+}
+
 func TodoTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request UserRequest
@@ -173,8 +195,7 @@ func TodoTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		if len(toDoTasks) <= 0 {
-			msg := errors.New("no matching rows")
-			c.JSON(http.StatusNoContent, msg)
+			c.Status(http.StatusNoContent)
 		}
 
 		c.JSON(http.StatusOK, toDoTasks)

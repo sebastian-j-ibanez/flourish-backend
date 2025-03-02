@@ -29,6 +29,7 @@ func main() {
 	r.POST("/newtask", api.NewTaskHandler(p))
 	r.POST("/updatetask", api.UpdateTaskHandler(p))
 	r.POST("/deletetask", api.DeleteTaskHandler(p))
+	r.POST("/jointask", api.JoinTaskHandler(p))
 	r.POST("/todaytasks", api.TodoTaskHandler(p))
 	r.POST("/usertasks", api.TaskListingHandler(p))
 	r.POST("/treedata", api.TreeDataHandler(p))

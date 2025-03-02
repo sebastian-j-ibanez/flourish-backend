@@ -165,16 +165,16 @@ func DeleteTask(p *pgxpool.Pool, userId int, taskId int) error {
 		return err
 	}
 
-	if len(userIds) == 0 {
-		query = `
-			DELETE FROM task_progress
-			WHERE task_id = $1
-		`
-		_, err := tx.Exec(context.Background(), query, taskId)
-		if err != nil {
-			return err
-		}
+	query = `
+	DELETE FROM task_progress
+	WHERE user_id = $1 AND task_id = $2
+	`
+	_, err = tx.Exec(context.Background(), query, userId, taskId)
+	if err != nil {
+		return err
+	}
 
+	if len(userIds) <= 0 {
 		query = `
 			DELETE FROM tasks 
 			WHERE task_id = $1
@@ -186,6 +186,51 @@ func DeleteTask(p *pgxpool.Pool, userId int, taskId int) error {
 	}
 
 	if err = tx.Commit(context.Background()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func JoinTask(p *pgxpool.Pool, userId int, taskCode string) error {
+	tx, err := p.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	query := `
+		UPDATE tasks
+		SET user_ids = array_append(user_ids, $1)
+		WHERE task_code = $2
+	`
+	_, err = tx.Exec(
+		context.Background(),
+		query,
+		userId,
+		taskCode,
+	)
+	if err != nil {
+		return err
+	}
+
+	var taskId int
+	query = "SELECT task_id FROM tasks WHERE task_code = $1"
+	err = tx.QueryRow(context.Background(), query, taskCode).Scan(&taskId)
+	if err != nil {
+		return err
+	}
+
+	query = "INSERT INTO task_progress (user_id, task_id, status, task_date) VALUES ($1, $2, $3, $4)"
+	_, err = tx.Exec(
+		context.Background(),
+		query,
+		userId,
+		taskId,
+		false,
+		date.GetToday(),
+	)
+	if err != nil {
 		return err
 	}
 
@@ -293,7 +338,7 @@ func GetTreeDataByTaskId(p *pgxpool.Pool, taskId int) ([]TreeData, error) {
 		tp.task_id,
 		t.task_name,
 		t.task_code,
-		ARRAY_AGG(tp.status) AS statuses,
+		ARRAY_AGG(tp.status ORDER BY tp.task_date DESC) AS statuses,
 	(SELECT COUNT(*) FROM UNNEST(ARRAY_AGG(tp.status)) AS status WHERE status = TRUE) AS true_count
 	FROM
 		task_progress tp
