@@ -81,6 +81,29 @@ func SignupHandler(p *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
+func NewTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request NewTaskRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		err := database.NewTask(
+			p,
+			request.UserId,
+			request.TaskName,
+			code.GenerateCode(),
+		)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		c.Status(http.StatusOK)
+	}
+}
+
 func UpdateTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request UserTaskStatusRequest
@@ -104,19 +127,17 @@ func UpdateTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func NewTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
+func DeleteTaskHandler(p *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var request NewTaskRequest
+		var request UserTaskRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
 			c.JSON(http.StatusBadRequest, err.Error())
-			return
 		}
 
-		err := database.NewTask(
+		err := database.DeleteTask(
 			p,
 			request.UserId,
-			request.TaskName,
-			code.GenerateCode(),
+			request.TaskId,
 		)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, err.Error())

@@ -46,10 +46,10 @@ type TaskListing struct {
 	DaysCompleted int    `json:"daysCompleted"`
 }
 
-type TreeProgress struct {
+type TreeData struct {
 	UserId        int    `json:"userId"`
 	TaskId        int    `json:"taskId"`
-	TaskName      int    `json:"taskName"`
+	TaskName      string `json:"taskName"`
 	TaskCode      string `json:"taskCode"`
 	Days          []bool `json:"days"`
 	DaysCompleted int    `json:"daysCompleted"`
@@ -94,6 +94,33 @@ func InsertUser(p *pgxpool.Pool, name string, password string) (User, error) {
 	return user, nil
 }
 
+func NewTask(p *pgxpool.Pool, userId int, taskName string, taskCode string) error {
+	tx, err := p.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	query := "INSERT INTO tasks (user_ids, task_name, task_code) VALUES ($1, $2, $3) RETURNING task_id"
+	var taskId int
+	err = tx.QueryRow(context.Background(), query, []int{userId}, taskName, taskCode).Scan(&taskId)
+	if err != nil {
+		return err
+	}
+
+	query = "INSERT INTO task_progress (user_id, task_id, status, task_date) VALUES ($1, $2, $3, $4)"
+	_, err = tx.Exec(context.Background(), query, userId, taskId, false, date.GetToday())
+	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(context.Background()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func UpdateTask(p *pgxpool.Pool, userId int, taskId int, status bool) error {
 	query := "UPDATE task_progress SET status = $1 WHERE user_id = $2 AND task_id = $3"
 	_, err := p.Exec(
@@ -110,17 +137,55 @@ func UpdateTask(p *pgxpool.Pool, userId int, taskId int, status bool) error {
 	return nil
 }
 
-func NewTask(p *pgxpool.Pool, userId int, taskName string, taskCode string) error {
-	query := "INSERT INTO tasks (user_ids, task_name, task_code) VALUES ($1, $2, $3)"
-
-	_, err := p.Exec(
-		context.Background(),
-		query,
-		[]int{userId},
-		taskName,
-		taskCode,
-	)
+func DeleteTask(p *pgxpool.Pool, userId int, taskId int) error {
+	tx, err := p.Begin(context.Background())
 	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	query := `
+	UPDATE tasks 
+	SET user_ids = array_remove(user_ids, $1) 
+	WHERE task_id = $2
+`
+	_, err = tx.Exec(context.Background(), query, userId, taskId)
+	if err != nil {
+		return err
+	}
+
+	var userIds []int
+	query = `
+        SELECT user_ids 
+        FROM tasks 
+        WHERE task_id = $1
+    `
+	err = tx.QueryRow(context.Background(), query, taskId).Scan(&userIds)
+	if err != nil {
+		return err
+	}
+
+	if len(userIds) == 0 {
+		query = `
+			DELETE FROM task_progress
+			WHERE task_id = $1
+		`
+		_, err := tx.Exec(context.Background(), query, taskId)
+		if err != nil {
+			return err
+		}
+
+		query = `
+			DELETE FROM tasks 
+			WHERE task_id = $1
+		`
+		_, err = tx.Exec(context.Background(), query, taskId)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = tx.Commit(context.Background()); err != nil {
 		return err
 	}
 
@@ -222,7 +287,7 @@ func GetTaskListingsByUserIdTaskId(p *pgxpool.Pool, userId int) ([]TaskListing, 
 	return listings, nil
 }
 
-func GetTreeDataByTaskId(p *pgxpool.Pool, taskId int) ([]TreeProgress, error) {
+func GetTreeDataByTaskId(p *pgxpool.Pool, taskId int) ([]TreeData, error) {
 	query := `SELECT
 		tp.user_id,
 		tp.task_id,
@@ -245,12 +310,12 @@ func GetTreeDataByTaskId(p *pgxpool.Pool, taskId int) ([]TreeProgress, error) {
 		taskId,
 	)
 	if err != nil {
-		return []TreeProgress{}, nil
+		return []TreeData{}, nil
 	}
 
-	var treeData []TreeProgress
+	var treeData []TreeData
 	for rows.Next() {
-		var datum TreeProgress
+		var datum TreeData
 		err = rows.Scan(
 			&datum.UserId,
 			&datum.TaskId,
@@ -260,7 +325,7 @@ func GetTreeDataByTaskId(p *pgxpool.Pool, taskId int) ([]TreeProgress, error) {
 			&datum.DaysCompleted,
 		)
 		if err != nil {
-			return []TreeProgress{}, err
+			return []TreeData{}, err
 		}
 		treeData = append(treeData, datum)
 	}
